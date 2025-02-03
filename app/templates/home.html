@@ -1,0 +1,27 @@
+{% extends "layout.html" %}
+{% block content %}
+    <h1>Portfolio Piece: Data Science</h1>
+
+    <h2>Neighborhood Marketing Strategy for Health Insurance Plans</h2>
+    <p>Proof of Local Setup: {{ password.decode() }}</p>
+    <h3>Personal Project</h3>
+    <ul>
+        <li>Mark Anthony Anglin: Data Analyst</li>
+        <li>Mark Anthony Anglin: Machine Learning Engineer</li>
+    </ul>
+    <h3>Tech Stack</h3>
+    <ul>
+        <li>Data Manipulation: Pandas</li>
+        <li>Visualization: Matplotlib, Seaborn, Tableau, Power BI</li>
+        <li>Machine Learning: Scikit-learn, XGBoost</li>
+        <li>Statistical Modeling: Statsmodels</li>
+        <li>Geospatial Analysis: Geopandas</li>
+    </ul>
+
+    <h4>Project Components</h4>
+    <ul>
+        {% for k, v in project_components.items() %}
+            <li>{{ k }}: {{ v }}</li>
+        {% endfor %}
+    </ul>
+{% endblock %}
