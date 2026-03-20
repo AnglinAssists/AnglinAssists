@@ -1,30 +1,517 @@
 <!DOCTYPE html>
-<html lang="en-US">
+<html lang="en">
 <head>
-    <title>Bandersnatch</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/reset.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/colors.css') }}">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Insurance Growth Analytics{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="icon" href="{{ url_for('static', filename='images/favicon.ico') }}">
-    {% block scripts %}
-    {% endblock %}
+    {% block head %}{% endblock %}
+    <style>
+        /*
+            AuADHD-Friendly Design System
+            - High contrast, low visual noise
+            - Large touch targets (min 44px)
+            - Generous whitespace
+            - Clear visual hierarchy with color anchors
+            - Progressive disclosure (details on demand)
+            - Consistent patterns, minimal surprises
+            - Reduced motion for non-essential animations
+        */
+
+        :root {
+            --bg-primary: #0f1117;
+            --bg-secondary: #1a1d27;
+            --bg-card: #1e2130;
+            --bg-card-hover: #252840;
+            --accent: #6366f1;
+            --accent-light: #818cf8;
+            --accent-glow: rgba(99, 102, 241, 0.15);
+            --text-primary: #f1f5f9;
+            --text-secondary: #cbd5e1;
+            --text-muted: #a8b2bd;
+            --border: #2d3148;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --info: #06b6d4;
+
+            --font-base: 1rem;
+            --radius: 14px;
+            --space-xs: 0.5rem;
+            --space-sm: 0.75rem;
+            --space-md: 1.25rem;
+            --space-lg: 2rem;
+            --space-xl: 3rem;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            font-size: var(--font-base);
+            line-height: 1.6;
+        }
+
+        /* ── SIDEBAR ── */
+        .sidebar {
+            position: fixed;
+            top: 0; left: 0;
+            width: 280px;
+            height: 100vh;
+            background: var(--bg-secondary);
+            border-right: 1px solid var(--border);
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar-brand {
+            padding: var(--space-lg);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .sidebar-brand h4 {
+            font-weight: 700;
+            font-size: 1.15rem;
+            margin: 0.25rem 0 0;
+            color: var(--text-primary);
+        }
+
+        .sidebar-brand small {
+            color: var(--accent-light);
+            font-size: 0.8rem;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+
+        .sidebar-nav { padding: var(--space-md) 0; flex: 1; }
+
+        .sidebar-nav .nav-link {
+            color: var(--text-secondary);
+            padding: var(--space-md) var(--space-lg);
+            font-size: 1rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+            transition: all 0.15s;
+            border-left: 4px solid transparent;
+            min-height: 52px; /* ADHD: large touch target */
+        }
+
+        .sidebar-nav .nav-link:hover {
+            color: var(--text-primary);
+            background: var(--accent-glow);
+        }
+
+        .sidebar-nav .nav-link.active {
+            color: var(--accent-light);
+            background: var(--accent-glow);
+            border-left-color: var(--accent);
+            font-weight: 600;
+        }
+
+        .sidebar-nav .nav-link i {
+            font-size: 1.25rem;
+            width: 1.75rem;
+            text-align: center;
+        }
+
+        .sidebar-footer {
+            padding: var(--space-md) var(--space-lg);
+            border-top: 1px solid var(--border);
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        /* ── MAIN ── */
+        .main-content {
+            margin-left: 280px;
+            padding: var(--space-xl) var(--space-lg);
+            min-height: 100vh;
+            max-width: 1400px;
+        }
+
+        .page-header {
+            margin-bottom: var(--space-xl);
+        }
+
+        .page-header h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: var(--space-xs);
+            letter-spacing: -0.02em;
+        }
+
+        .page-header p {
+            color: var(--text-secondary);
+            font-size: 1.05rem;
+            margin: 0;
+            max-width: 700px;
+            line-height: 1.5;
+        }
+
+        /* ── CARDS ── */
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            transition: border-color 0.2s;
+        }
+
+        .card:hover {
+            border-color: rgba(99, 102, 241, 0.4);
+        }
+
+        .card-body {
+            padding: var(--space-lg);
+            overflow: hidden;
+        }
+
+        /* Vega charts must not overflow cards */
+        .vega-embed {
+            width: 100% !important;
+            overflow: hidden;
+        }
+
+        .vega-embed canvas,
+        .vega-embed svg {
+            max-width: 100% !important;
+            height: auto !important;
+        }
+
+        /* ── KPI CARDS ── */
+        .kpi-card .kpi-value {
+            font-size: 2.25rem;
+            font-weight: 700;
+            line-height: 1.2;
+            color: #ffffff;
+            text-shadow: 0 0 1px rgba(255,255,255,0.3);
+        }
+
+        .kpi-card .kpi-label {
+            font-size: 0.85rem;
+            color: #e2e8f0;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            font-weight: 600;
+            margin-bottom: var(--space-xs);
+        }
+
+        .kpi-card .kpi-icon {
+            width: 52px;
+            height: 52px;
+            border-radius: var(--radius);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            flex-shrink: 0;
+        }
+
+        .kpi-card .kpi-change {
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-top: var(--space-xs);
+        }
+
+        /* ── SECTION TITLES ── */
+        .section-title {
+            font-size: 1.15rem;
+            font-weight: 600;
+            margin-bottom: var(--space-md);
+            display: flex;
+            align-items: center;
+            gap: var(--space-xs);
+            color: #ffffff;
+        }
+
+        /* ── TABLES ── */
+        .table { color: var(--text-primary); font-size: 0.95rem; }
+
+        .table thead th {
+            background: var(--bg-secondary);
+            color: #e2e8f0;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.8rem;
+            letter-spacing: 0.06em;
+            border-bottom: 1px solid var(--border);
+            padding: var(--space-sm) var(--space-md);
+            white-space: nowrap;
+        }
+
+        .table thead th.sortable {
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .table thead th.sortable:hover {
+            color: var(--accent-light);
+        }
+
+        .table thead th .sort-icon {
+            font-size: 0.7rem;
+            opacity: 0.4;
+            margin-left: 0.3rem;
+        }
+
+        .table thead th.sort-active .sort-icon {
+            opacity: 1;
+            color: var(--accent-light);
+        }
+
+        .table tbody td {
+            border-bottom: 1px solid var(--border);
+            padding: var(--space-sm) var(--space-md);
+            vertical-align: middle;
+        }
+
+        .table tbody tr:hover { background: var(--accent-glow); }
+
+        /* ── RATE BARS ── */
+        .rate-bar {
+            height: 8px; /* bigger for visibility */
+            border-radius: 4px;
+            background: var(--bg-secondary);
+            overflow: hidden;
+        }
+
+        .rate-bar-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.4s ease;
+        }
+
+        /* ── BADGES ── */
+        .badge-cluster {
+            padding: 0.4em 0.85em;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .stat-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3em;
+            padding: 0.35em 0.75em;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .stat-badge.sig { background: rgba(16, 185, 129, 0.15); color: var(--success); }
+        .stat-badge.not-sig { background: rgba(100, 116, 139, 0.15); color: var(--text-muted); }
+
+        /* ── FORMS (large touch targets) ── */
+        .form-control, .form-select {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            border-radius: 10px;
+            padding: 0.65rem 1rem;
+            font-size: 1rem;
+            min-height: 48px; /* ADHD: easy to tap */
+        }
+
+        .form-control:focus, .form-select:focus {
+            background: var(--bg-secondary);
+            border-color: var(--accent);
+            color: var(--text-primary);
+            box-shadow: 0 0 0 4px var(--accent-glow);
+            outline: none;
+        }
+
+        .form-label {
+            color: var(--text-primary);
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            margin-bottom: 0.4rem;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            border-color: var(--accent);
+            border-radius: 10px;
+            font-weight: 600;
+            padding: 0.65rem 1.5rem;
+            font-size: 1rem;
+            min-height: 48px;
+            transition: all 0.15s;
+        }
+
+        .btn-primary:hover {
+            background: var(--accent-light);
+            border-color: var(--accent-light);
+            transform: translateY(-1px);
+        }
+
+        /* ── RISK COLORS ── */
+        .risk-high { color: var(--danger); }
+        .risk-medium { color: var(--warning); }
+        .risk-low { color: var(--success); }
+
+        /* ── PREDICTION RESULT ── */
+        .prediction-result {
+            padding: var(--space-lg);
+            border-radius: var(--radius);
+            text-align: center;
+            margin-top: var(--space-md);
+        }
+
+        .prediction-result.high-risk {
+            background: rgba(239, 68, 68, 0.1);
+            border: 2px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .prediction-result.low-risk {
+            background: rgba(16, 185, 129, 0.1);
+            border: 2px solid rgba(16, 185, 129, 0.3);
+        }
+
+        /* ── COLLAPSIBLE DETAILS (progressive disclosure) ── */
+        .detail-toggle {
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: var(--space-xs);
+            color: var(--accent-light);
+            font-size: 0.9rem;
+            font-weight: 500;
+            padding: var(--space-xs) 0;
+            border: none;
+            background: none;
+        }
+
+        .detail-toggle:hover { color: var(--text-primary); }
+
+        .detail-toggle .bi-chevron-down {
+            transition: transform 0.2s;
+        }
+
+        .detail-toggle[aria-expanded="true"] .bi-chevron-down {
+            transform: rotate(180deg);
+        }
+
+        /* ── TECH BADGES ── */
+        .tech-badge {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+            padding: 0.45rem 0.9rem;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        /* ── STAT CARD (for validation) ── */
+        .stat-card {
+            background: #1e2233;
+            border-radius: 10px;
+            padding: var(--space-md);
+            border-left: 4px solid var(--border);
+            color: #e2e8f0;
+        }
+
+        .stat-card strong {
+            color: #ffffff;
+            font-weight: 700;
+        }
+
+        .stat-card .stat-value {
+            color: #e2e8f0;
+        }
+
+        .stat-card.pass { border-left-color: var(--success); }
+        .stat-card.warn { border-left-color: var(--warning); }
+        .stat-card.fail { border-left-color: var(--danger); }
+
+        /* ── MONOSPACE ── */
+        .mono {
+            font-family: 'SF Mono', 'Fira Code', monospace;
+            font-size: 0.85rem;
+            background: var(--bg-secondary);
+            border-radius: 10px;
+            padding: var(--space-md);
+            color: #d1d5db;
+            line-height: 1.8;
+        }
+
+        /* ── FILTER RESULTS COUNTER ── */
+        .filter-count {
+            font-size: 0.85rem;
+            color: var(--accent-light);
+            font-weight: 600;
+            padding: 0.3rem 0;
+        }
+
+        /* ── RESPONSIVE ── */
+        @media (max-width: 992px) {
+            .sidebar { display: none; }
+            .main-content { margin-left: 0; padding: var(--space-md); }
+        }
+
+        /* ── REDUCED MOTION ── */
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+    </style>
 </head>
 <body>
-<header>
-    <h1><a href="/">Bandersnatch</a></h1>
-</header>
-<nav>
-    <ul>
-        <li><a href="{{ url_for('home') }}">Home</a></li>
-        <li><a href="{{ url_for('data') }}">Data</a></li>
-        <li><a href="{{ url_for('view') }}">View</a></li>
-        <li><a href="{{ url_for('model') }}">Model</a></li>
-    </ul>
-</nav>
-<article>
-    {% block content %}
-    {% endblock %}
-</article>
-<footer><p>Copyright © 2023 BloomTech Labs</p></footer>
+    <div class="sidebar">
+        <div class="sidebar-brand">
+            <small>Mark Anthony Anglin</small>
+            <h4>Insurance Growth<br>Analytics</h4>
+        </div>
+        <nav class="sidebar-nav">
+            <a class="nav-link {% if active_page == 'home' %}active{% endif %}" href="{{ url_for('home') }}">
+                <i class="bi bi-grid-1x2-fill"></i> Dashboard
+            </a>
+            <a class="nav-link {% if active_page == 'data' %}active{% endif %}" href="{{ url_for('data') }}">
+                <i class="bi bi-table"></i> Neighborhood Data
+            </a>
+            <a class="nav-link {% if active_page == 'view' %}active{% endif %}" href="{{ url_for('view') }}">
+                <i class="bi bi-bar-chart-fill"></i> Explore
+            </a>
+            <a class="nav-link {% if active_page == 'model_page' %}active{% endif %}" href="{{ url_for('model_page') }}">
+                <i class="bi bi-cpu-fill"></i> Risk Predictor
+            </a>
+            <a class="nav-link {% if active_page == 'campaign' %}active{% endif %}" href="{{ url_for('campaign') }}">
+                <i class="bi bi-megaphone-fill"></i> Campaign Strategy
+            </a>
+        </nav>
+        <div class="sidebar-footer">
+            <div class="d-flex flex-wrap gap-1 mb-2">
+                <span class="tech-badge">PyTorch</span>
+                <span class="tech-badge">Flask</span>
+                <span class="tech-badge">scipy</span>
+                <span class="tech-badge">Pandas</span>
+            </div>
+            <div>NYC ACS Census Data &bull; 2022 5-Year</div>
+        </div>
+    </div>
+
+    <div class="main-content">
+        {% block content %}{% endblock %}
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    {% block scripts %}{% endblock %}
 </body>
 </html>

@@ -1,58 +1,168 @@
 {% extends "layout.html" %}
-
-{% block scripts %}
-    <script src="https://cdn.jsdelivr.net/npm/vega@5"></script>
-    <script src="https://cdn.jsdelivr.net/npm/vega-lite@5"></script>
-    <script src="https://cdn.jsdelivr.net/npm/vega-embed@6"></script>
-{% endblock %}
+{% block title %}Explore | Insurance Growth Analytics{% endblock %}
 
 {% block content %}
-    <h1>Bandersnatch Viewer</h1>
-    <p>Monster Count: {{ count | safe }}</p>
+<div class="page-header">
+    <h1>Explore & Visualize</h1>
+    <p>Interactive exploration with statistical annotations — scatter plot updates live when you change axes</p>
+</div>
 
-    <form method="post" action="{{ url_for('view') }}">
-        <p><label>X-axis:
-            <select name="x_axis">
-                {% for op in options %}
-                    {% if op == x_axis %}
-                        <option selected="selected">{{ op }}</option>
-                    {% else %}
-                        <option>{{ op }}</option>
-                    {% endif %}
-                {% endfor %}
-            </select>
-        </label></p>
-        <br class="clear">
-        <p><label>Y-axis:
-            <select name="y_axis">
-                {% for op in options %}
-                    {% if op == y_axis %}
-                        <option selected="selected">{{ op }}</option>
-                    {% else %}
-                        <option>{{ op }}</option>
-                    {% endif %}
-                {% endfor %}
-            </select>
-        </label></p>
-        <br class="clear">
-        <p><label>Target:
-            <select name="target">
-                {% for op in options %}
-                    {% if op == target %}
-                        <option selected="selected">{{ op }}</option>
-                    {% else %}
-                        <option>{{ op }}</option>
-                    {% endif %}
-                {% endfor %}
-            </select>
-        </label></p>
-        <br><br class="clear">
-        <button name="submit">Regenerate Chart</button>
-        <br class="clear">
-    </form>
+<div class="row g-4 mb-4">
+    <div class="col-lg-3">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="section-title"><i class="bi bi-sliders" style="color: var(--accent);"></i> Controls</h5>
+                <form method="post" action="{{ url_for('view') }}" id="chartForm">
+                    <div class="mb-3">
+                        <label class="form-label">X-Axis</label>
+                        <select name="x_axis" id="xAxis" class="form-select" onchange="updateScatter()">
+                            {% for op in options %}
+                            <option {% if op == x_axis %}selected{% endif %}>{{ op }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Y-Axis</label>
+                        <select name="y_axis" id="yAxis" class="form-select" onchange="updateScatter()">
+                            {% for op in options %}
+                            <option {% if op == y_axis %}selected{% endif %}>{{ op }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Color By</label>
+                        <select name="target" id="colorBy" class="form-select" onchange="updateScatter()">
+                            {% for op in options %}
+                            <option {% if op == target %}selected{% endif %}>{{ op }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <noscript>
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="bi bi-arrow-clockwise me-1"></i> Update
+                        </button>
+                    </noscript>
+                </form>
 
-    <div id="graph"></div>
-    <script type="text/javascript">
-        vegaEmbed('#graph', {{ graph | safe }});
-    </script>
+                <div class="mt-4">
+                    <h6 style="color: #e2e8f0; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em;">Normality Tests</h6>
+                    {% for feat, vals in normality.items() %}
+                    <div class="stat-card {{ 'pass' if vals.normal else 'warn' }} mb-2" style="padding: 0.6rem;">
+                        <div style="font-size: 0.8rem;">
+                            <strong style="color: #ffffff;">{{ feat }}</strong><br>
+                            <span style="color: #e2e8f0;">W={{ vals.W }}, p={{ vals.p }}</span>
+                            {% if not vals.normal %}
+                            <br><span style="color: var(--warning); font-size: 0.75rem;">Non-normal &rarr; use nonparametric tests</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-9">
+        <div class="card">
+            <div class="card-body">
+                <div id="main-chart"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="section-title"><i class="bi bi-link-45deg" style="color: var(--accent);"></i> Correlations</h5>
+                <p style="color: #e2e8f0; font-size: 0.85rem;">Spearman rank (robust to non-normality)</p>
+                {% for c in correlations %}
+                <div class="stat-card {{ 'pass' if c.significant else 'warn' }} mb-2">
+                    <div class="d-flex justify-content-between align-items-center" style="font-size: 0.85rem;">
+                        <strong style="color: #ffffff;">{{ c.pair }}</strong>
+                        <span class="stat-badge {{ 'sig' if c.significant else 'not-sig' }}">
+                            {{ c.effect_size }}
+                        </span>
+                    </div>
+                    <div style="color: #e2e8f0; font-size: 0.8rem;">&rho;={{ c.rho }}, p={{ c.p }}</div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-8">
+        <div class="row g-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="section-title"><i class="bi bi-diagram-3-fill" style="color: var(--info);"></i> Uninsured by Age & Borough</h5>
+                        <div id="age-chart"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="section-title"><i class="bi bi-distribute-vertical" style="color: var(--warning);"></i> Distributions</h5>
+                        <div id="dist-chart"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/vega@5"></script>
+<script src="https://cdn.jsdelivr.net/npm/vega-lite@5"></script>
+<script src="https://cdn.jsdelivr.net/npm/vega-embed@6"></script>
+<script>
+    const opts = {actions: false, theme: 'dark'};
+
+    // all neighborhood data embedded once — scatter plot rebuilds client-side when axes change
+    const allData = {{ all_records | safe }};
+
+    const vegaConfig = {
+        "view": {"stroke": "transparent"},
+        "axis": {"labelColor": "#94a3b8", "titleColor": "#94a3b8", "gridColor": "#2d3148", "labelFontSize": 13, "titleFontSize": 13},
+        "title": {"color": "#f1f5f9", "fontSize": 15},
+        "legend": {"labelColor": "#94a3b8", "titleColor": "#94a3b8", "labelFontSize": 12}
+    };
+
+    // rebuild the scatter plot instantly when the user changes any dropdown
+    function updateScatter() {
+        const xCol = document.getElementById('xAxis').value;
+        const yCol = document.getElementById('yAxis').value;
+        const colorCol = document.getElementById('colorBy').value;
+
+        const spec = {
+            "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+            "data": {"values": allData},
+            "mark": {"type": "circle", "size": 120, "opacity": 0.85},
+            "encoding": {
+                "x": {"field": xCol, "type": "quantitative"},
+                "y": {"field": yCol, "type": "quantitative"},
+                "color": {"field": colorCol, "type": "quantitative", "scale": {"scheme": "plasma"}},
+                "tooltip": [
+                    {"field": "Neighborhood", "type": "nominal"},
+                    {"field": xCol, "type": "quantitative", "format": ".4f"},
+                    {"field": yCol, "type": "quantitative", "format": ".4f"},
+                    {"field": colorCol, "type": "quantitative", "format": ".4f"}
+                ]
+            },
+            "width": "container", "height": 380,
+            "title": yCol + " vs " + xCol,
+            "autosize": {"type": "fit", "contains": "padding"},
+            "config": vegaConfig
+        };
+
+        vegaEmbed('#main-chart', spec, opts);
+    }
+
+    // initial render
+    updateScatter();
+    vegaEmbed('#age-chart', {{ age_chart | safe }}, opts);
+    vegaEmbed('#dist-chart', {{ dist_chart | safe }}, opts);
+</script>
 {% endblock %}
