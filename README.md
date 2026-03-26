@@ -2,7 +2,7 @@
 
 ## Data Scientist
 
-I'm passionate about transforming raw data into actionable insights to elevate businesses. With 3 years of experience in data science and Python, I bring a unique blend of expertise in stakeholder engagement, customer experience, and data storytelling. My superpower? Using Python like a magic wand to create impactful solutions. When not diving into data, you'll find me lifting weights, perfecting spreadsheets, and savoring great food.
+I'm passionate about transforming raw data into actionable insights to elevate businesses. With over 3 years of experience in data science and Python, I bring a unique blend of expertise in stakeholder engagement, customer experience, and data storytelling. My superpower? Using Python like a magic wand to create impactful solutions. When not diving into data, you'll find me lifting weights, perfecting spreadsheets, and savoring great food.
 
 ---
 
